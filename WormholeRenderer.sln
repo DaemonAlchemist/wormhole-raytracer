@@ -1,9 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WormholeRenderer", "WormholeRenderer\WormholeRenderer.vcxproj", "{F410F0E6-685F-45D7-9B74-EFD79CAB656E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "vendor", "vendor", "{8E5A1883-59A1-41A4-8FC5-7F531DB14EAF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "daemonalchemist", "daemonalchemist", "{31A32B97-3916-4C38-9832-D5AACEF6C06C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "atp-vector", "vendor\daemonalchemist\atp-vector\atp-vector.vcxproj", "{1A4EF2C9-E2F7-4650-93B3-374EFC397AC7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,8 +27,23 @@ Global
 		{F410F0E6-685F-45D7-9B74-EFD79CAB656E}.Release|x64.Build.0 = Release|x64
 		{F410F0E6-685F-45D7-9B74-EFD79CAB656E}.Release|x86.ActiveCfg = Release|Win32
 		{F410F0E6-685F-45D7-9B74-EFD79CAB656E}.Release|x86.Build.0 = Release|Win32
+		{1A4EF2C9-E2F7-4650-93B3-374EFC397AC7}.Debug|x64.ActiveCfg = Debug|x64
+		{1A4EF2C9-E2F7-4650-93B3-374EFC397AC7}.Debug|x64.Build.0 = Debug|x64
+		{1A4EF2C9-E2F7-4650-93B3-374EFC397AC7}.Debug|x86.ActiveCfg = Debug|Win32
+		{1A4EF2C9-E2F7-4650-93B3-374EFC397AC7}.Debug|x86.Build.0 = Debug|Win32
+		{1A4EF2C9-E2F7-4650-93B3-374EFC397AC7}.Release|x64.ActiveCfg = Release|x64
+		{1A4EF2C9-E2F7-4650-93B3-374EFC397AC7}.Release|x64.Build.0 = Release|x64
+		{1A4EF2C9-E2F7-4650-93B3-374EFC397AC7}.Release|x86.ActiveCfg = Release|Win32
+		{1A4EF2C9-E2F7-4650-93B3-374EFC397AC7}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{31A32B97-3916-4C38-9832-D5AACEF6C06C} = {8E5A1883-59A1-41A4-8FC5-7F531DB14EAF}
+		{1A4EF2C9-E2F7-4650-93B3-374EFC397AC7} = {31A32B97-3916-4C38-9832-D5AACEF6C06C}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0F54BF3C-7810-4885-B855-3BFC73456FAD}
 	EndGlobalSection
 EndGlobal
