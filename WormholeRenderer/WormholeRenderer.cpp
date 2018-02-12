@@ -13,7 +13,7 @@ int main()
 
 	//--Begin metric test trace--
 		float PI = 3.1415926535897f;
-		float p = -10.0f, t = 0.0f;		//Location of camera in radial coordinates
+		float p = -10.0f, t = PI;		//Location of camera in radial coordinates
 		float T = 0.2507875f * PI;			//Viewing angle
 		//float T = 0.2507918f * PI;			//Viewing angle
 		float w = 1.0f;					//Throat width
@@ -32,6 +32,10 @@ int main()
 		}
 		else {
 			h = sqrt(b);
+		}
+
+		if (T < 0.0f) {
+			h = -h;
 		}
 
 		//Open output file
