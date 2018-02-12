@@ -14,7 +14,8 @@ int main()
 	//--Begin metric test trace--
 		float PI = 3.1415926535897f;
 		float p = -10.0f, t = 0.0f;		//Location of camera in radial coordinates
-		float T = 0.270f * PI;			//Viewing angle
+		float T = 0.2507875f * PI;			//Viewing angle
+		//float T = 0.2507918f * PI;			//Viewing angle
 		float w = 1.0f;					//Throat width
 
 		//Determine initial direction
@@ -39,6 +40,7 @@ int main()
 		
 		//Iterate until heading directly away from the wormhole
 		float pInitial = p;
+		float m = 1.0f;
 		outFile << "p,t,dp,dt,h,hh/(ww+pp),r,x,y,z\n";
 		while (fabs(p) <= fabs(pInitial)) {
 			float r = sqrt(w * w + p * p);							//Cartesian radius
@@ -52,10 +54,18 @@ int main()
 			t += dt * ds;
 
 			//Get new direction
-			float c = w * w + p * p;			//Simplification
-			float d = fabs(1.0f - h * h / c);	//Simplification, fabs() added to catch rounding errors where hh/c is slightly greater than 1.0
+			float c = w * w + p * p;	//Simplification
+			float d = 1.0f - h * h / c;	//Simplification
+			if (d < 0.0f) d = -d;
 			dt = h / c;
-			dp = sqrt(d);
+			float dpOld = dp;
+			dp = m * sqrt(d);
+
+			//Check for turnaround condition
+			if (m > 0.0f && h*h > w*w && dp > dpOld && fabs(dp) < 0.01f) {
+				m = -1.0f;
+				dp = -dp;
+			}
 
 			std::cout << p << "\t" << t << "\n";
 			outFile << p << "," << t << "," << dp << "," << dt << "," << h << "," << (h*h/c) << "," << r << "," << x << "," << y << "," << z << "\n";
