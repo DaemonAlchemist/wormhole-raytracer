@@ -13,31 +13,31 @@ namespace ATP
 				public:
 					Point() {}
 					Point(const Point& p);
-					Point(float p, float t, float dp, float dt, float w, float m);
+					Point(double p, double t, double dp, double dt, double w, double m);
 					Point& operator=(const Point& p);
 
-					float p() const;
-					float t() const;
-					float dp() const;
-					float dt() const;
-					float r() const;
-					float x() const;
-					float y() const;
-					float z() const;
-					float w() const;
-					float m() const;
+					double p() const;
+					double t() const;
+					double dp() const;
+					double dt() const;
+					double r() const;
+					double x() const;
+					double y() const;
+					double z() const;
+					double w() const;
+					double m() const;
 
 				private:
-					float _p, _t, _dp, _dt, _w, _m;
+					double _p, _t, _dp, _dt, _w, _m;
 				};
 
-				Geodesic(float p, float t, float T, float w);
+				Geodesic(double p, double t, double T, double w);
 
 				Point reset();
-				Point next(Point cur, float ds);
+				Point next(Point cur, double ds);
 
 			private:
-				float p, t, dp, dt, w, h;
+				double p, t, dp, dt, w, h;
 			};
 		}
 	}
