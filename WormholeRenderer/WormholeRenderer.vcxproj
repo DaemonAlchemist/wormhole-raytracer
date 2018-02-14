@@ -161,6 +161,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="geodesic-point.cpp" />
     <ClCompile Include="WormholeRenderer.cpp" />
     <ClCompile Include="geodesic.cpp" />
   </ItemGroup>
