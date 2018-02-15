@@ -22,11 +22,11 @@ int main()
 		outFile.open("data.csv");
 
 		//Iterate until heading directly away from the wormhole
-		outFile << "p,t,dp,dt,r,x,y,z\n";
+		outFile << "p,t,dp,dt,m,r,x,y,z\n";
 
 		double p = -10.0;			//Location of camera in radial coordinates
 		double t = PI;				//Location of camera in radial coordinates
-		double T = 0.2507875 * PI;	//Viewing angle
+		double T = 0.0317325 * PI;	//Viewing angle
 		double w = 1.0;				//Wormhole throat width
 		double ds = 0.01;			//Integration step size
 
@@ -40,7 +40,7 @@ int main()
 			cur = g.next(cur, ds);
 
 			std::cout << cur.p() << "\t" << cur.t() << "\n";
-			outFile << cur.p() << "," << cur.t() << "," << cur.dp() << "," << cur.dt() << "," << cur.r() << "," << cur.x() << "," << cur.y() << "," << cur.z() << "\n";
+			outFile << cur.p() << "," << cur.t() << "," << cur.dp() << "," << cur.dt() << "," << cur.m() << "," << cur.r() << "," << cur.x() << "," << cur.y() << "," << cur.z() << "\n";
 		}
 		outFile.close();
 

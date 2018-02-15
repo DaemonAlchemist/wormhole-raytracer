@@ -1,6 +1,11 @@
 #include <math.h>
+#include <iostream>
 
 #include "geodesic.hpp"
+
+//References
+// [1] http://www.spacetimetravel.org/wurmlochflug/wurmlochflug.html
+// [2] https://en.wikipedia.org/wiki/Ellis_wormhole
 
 namespace ATP
 {
@@ -14,22 +19,24 @@ namespace ATP
 				this->t = t;
 				this->w = w;
 
+				std::cout << "p: " << p << "\n";
+				std::cout << "w: " << w << "\n";
+				std::cout << "t: " << t << "\n";
+
 				double b = p * p + w * w;	//Simplification
+				double r = sqrt(b);			//Simplification [1]
 
 				dp = cos(T);		//Initial value of dp/ds
-				dt = sin(T) / b;	//Initial value of dt/ds
+				dt = sin(T) / r;	//Initial value of dt/ds
 				
-				//Determine characteristic constant (h) of the geodesic
+				//Determine characteristic constant (h) of the geodesic [2]
+				float m = T > 0.0f ? 1.0 : -1.0;
 				if (dp != 0.0f) {
 					double a = dt / dp;			//Simplification
-					h = sqrt(a*a*b*b / (a*a*b + 1));
+					h = m * sqrt(a*a*b*b / (a*a*b + 1));
 				}
 				else {
-					h = sqrt(b);
-				}
-
-				if (T < 0.0f) {
-					h = -h;
+					h = m * sqrt(b);
 				}
 			}
 
@@ -42,17 +49,17 @@ namespace ATP
 				double p = cur.p() + cur.dp() * ds;
 				double t = cur.t() + cur.dt() * ds;
 
-				//Get new direction
+				//Get new direction [2]
 				double c = w * w + p * p;	//Simplification
 				double d = 1.0f - h * h / c;	//Simplification
 				if (d < 0.0f) d = -d;
 				double dt = h / c;
 				double dp = cur.m() * sqrt(d);
 
-				//Check for turnaround condition
-				double m = 1.0f;
-				if (cur.m() > 0.0f && h*h > w*w && dp > cur.dp() && fabs(dp) < 0.01f) {
-					m = -1.0f;
+				//Check for turnaround condition [2]
+				double m = cur.m();
+				if (m > 0.0 && h*h > w*w && dp > cur.dp() && fabs(dp) < 0.01f) {
+					m = -1.0;
 					dp = -dp;
 				}
 
