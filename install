@@ -1,0 +1,5 @@
+#!/bin/bash
+
+npm install
+
+git clone https://github.com/DaemonAlchemist/atp-cpp-vector.git vendor/daemonalchemist/atp-vector
