@@ -15,8 +15,7 @@ namespace ATP
 				(*this) = p;
 			}
 
-			Geodesic::Point::Point(double p, double t, double dp, double dt, double w, double m)
-			{
+			Geodesic::Point::Point(double p, double t, double dp, double dt, double w, double m) {
 				_p = p;
 				_t = t;
 				_dp = dp;

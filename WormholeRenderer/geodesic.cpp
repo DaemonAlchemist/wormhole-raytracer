@@ -13,8 +13,7 @@ namespace ATP
 	{
 		namespace Ellis
 		{
-			Geodesic::Geodesic(double p, double t, double T, double w)
-			{
+			Geodesic::Geodesic(double p, double t, double T, double w) {
 				this->p = p;
 				this->t = t;
 				this->w = w;

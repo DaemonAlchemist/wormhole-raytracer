@@ -10,8 +10,7 @@ double PI = 3.1415926535897;
 
 using namespace ATP::Wormhole::Ellis;
 
-int main()
-{
+int main() {
 	ATP::Math::Vector camera(1, 2, 3);	//Camera location
 	double psi, theta;					//Viewing direction
 	double roll;							//Camera roll

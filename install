@@ -3,3 +3,4 @@
 npm install
 
 git clone https://github.com/DaemonAlchemist/atp-cpp-vector.git vendor/daemonalchemist/atp-vector
+git clone https://github.com/DaemonAlchemist/atp-coordinate-system.git vendor/daemonalchemist/atp-coordinate-system
