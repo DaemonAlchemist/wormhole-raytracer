@@ -1,0 +1,25 @@
+{
+  "name": "wormhole-renderer",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DaemonAlchemist/wormhole-raytracer.git"
+  },
+  "author": "Andrew Wittrock",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/DaemonAlchemist/wormhole-raytracer/issues"
+  },
+  "homepage": "https://github.com/DaemonAlchemist/wormhole-raytracer#readme",
+  "devDependencies": {
+    "atp-pointfree": "^0.8.1",
+    "bluebird": "^3.5.1",
+    "colors": "^1.1.2",
+    "columnify": "^1.5.4"
+  }
+}
