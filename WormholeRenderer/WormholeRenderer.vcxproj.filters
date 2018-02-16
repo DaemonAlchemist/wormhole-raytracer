@@ -24,6 +24,9 @@
     <ClInclude Include="geodesic.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="geodesic-point.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WormholeRenderer.cpp">

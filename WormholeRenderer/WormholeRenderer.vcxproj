@@ -157,6 +157,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="geodesic-point.hpp" />
     <ClInclude Include="geodesic.hpp" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
