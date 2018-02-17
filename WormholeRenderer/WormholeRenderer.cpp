@@ -45,6 +45,27 @@ int main() {
 
 	//-- End metric test trace --
 
+	//--Begin background render test--
+
+		//Set initial camera location <p, t, T>
+		//Set forward vector <p, t, T>
+		//Set up vector <p, t, T>
+		//Set aspect ratio
+		//Set viewing angle
+		//Calculate screen extents
+		//Load background images
+		//Iterate over screen pixels
+			//Calculate ray vector in <p, t, T>
+			//Calculate 2d ray vector <p, T>
+			//Trace ray until dt/ds is small OR dp/ds == 0
+			//Read off final T angle
+			//Translate back into 3d direction
+			//Read off corresponding pixel from appropriate background image
+			//Antialias (if desired)
+		//Save final image
+
+	//-- End background render text --
+
 
 	//TODO:  Load geometry
 
