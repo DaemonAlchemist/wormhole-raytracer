@@ -64,6 +64,21 @@ namespace ATP
 
 				return Geodesic::Point(p, t, dp, dt, w, m);
 			}
+
+			Geodesic::Point Geodesic::trace(
+				double ds,
+				std::function<bool(Geodesic::Point, Geodesic::Point)> isDone,
+				std::function<void(Geodesic::Point, Geodesic::Point)> body
+			) {
+				Geodesic::Point start = reset();
+				Geodesic::Point cur = start;
+				while (!isDone(cur, start)) {
+					body(cur, start);
+					cur = next(cur, ds);
+				}
+
+				return cur;
+			}
 		}
 	}
 }
