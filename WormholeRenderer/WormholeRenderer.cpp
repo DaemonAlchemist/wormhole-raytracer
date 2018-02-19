@@ -95,30 +95,26 @@ void backgroundRenderTest() {
 			double T = acos((xAxis * rayAbsolute) / (xAxis.length() * rayAbsolute.length()));	// From the definition of dot product a.b = |a||b|cos(T)
 			
 			//Trace ray until either:
-			//	(dp < 0 && p < 0 || dp > 0 && p > 0) && ds is small, this means the ray is headed almost directly away from the wormhole
+			//	|pCurrent| >> |pInitial|, the ray is much farther away from the wormhole than it started
 			//	dp == 0.0, The ray got stuck in the throat
 			Geodesic::Point final = Geodesic(p, t, T, w).trace(
 				ds,
-				[&](Geodesic::Point cur, Geodesic::Point start) {
+				[](Geodesic::Point cur, Geodesic::Point start) {
 					//TODO:  Add geometry intersection checks
 					double threshold = 100.0;
 					return
-						fabs(cur.p()) > threshold * w	// The ray is far away from the wormhole
-						|| cur.dp() == 0.0;				// The ray got stuck in the throat
+						fabs(cur.p() / start.p()) > threshold	// The ray is far away from the wormhole compared to the camera
+						|| cur.dp() == 0.0;						// The ray got stuck in the throat
 				}
 			);
 
-			//Read off final coordinates
-			double tFinal = final.t();
-			double rFinal = sqrt(final.p() * final.p() + w * w);
-
-			//Determine which side of the wormhole the ray got to
+			//Determine which side of the wormhole the ray is on
 			unsigned int index = final.p() <= 0 ? 0 : 1;
 
 			//Translate back into global spherical coordinates
 			ATP::Math::Vector final2D(
-				rFinal * cos(tFinal),
-				rFinal * sin(tFinal),
+				final.r() * cos(final.t()),
+				final.r() * sin(final.t()),
 				0.0
 			);
 			Spherical::Vector finalSpherical = cartesianToSpherical(final2D, system2D);
