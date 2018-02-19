@@ -15,6 +15,10 @@ double PI = 3.1415926535897;
 using namespace ATP::Wormhole::Ellis;
 using namespace ATP::Math::CoordinateSystems;
 
+//References
+// [1] http://www.spacetimetravel.org/wurmlochflug/wurmlochflug.html
+// [2] https://en.wikipedia.org/wiki/Ellis_wormhole
+
 void traceTest() {
 	//Open output file
 	std::ofstream outFile;
@@ -33,32 +37,24 @@ void traceTest() {
 		ds,
 		[](Geodesic::Point cur, Geodesic::Point start) {return fabs(cur.p()) > fabs(start.p()); },
 		[&](Geodesic::Point cur, Geodesic::Point start) {
-		std::cout << cur.p() << "\t" << cur.t() << "\n";
-		outFile << cur.p() << "," << cur.t() << "," << cur.dp() << "," << cur.dt() << "," << cur.m() << "," << cur.r() << "," << cur.x() << "," << cur.y() << "," << cur.z() << "\n";
-	}
+			std::cout << cur.p() << "\t" << cur.t() << "\n";
+			outFile << cur.p() << "," << cur.t() << "," << cur.dp() << "," << cur.dt() << "," << cur.m() << "," << cur.r() << "," << cur.x() << "," << cur.y() << "," << cur.z() << "\n";
+		}
 	);
 	outFile.close();
 }
 
 void backgroundRenderTest() {
-	//Set initial camera location <p, t, T>
-	ATP::Math::Vector camera(-5.0, 0.0, 0.0);
+	double w = 1.0;		//Wormhole throat width
+	double ds = 0.01;	//Integration step size
 
-	//Set forward vector <p, t, T>
-	ATP::Math::Vector forward(1.0, 0.0, 0.0);
 
-	//Set right vector <p, t, T>
-	ATP::Math::Vector right(0.0, 1.0, 0.0);
-
-	//Set up local spherical coordinate system
-	Spherical::System localSphericalSystem(camera, right, forward);
-
-	//Read off the local cartesian system
+	//Setup a local cartesian system at the camera's location with orientation of the system following the camera's field of view
 	Cartesian::System localCartesianSystem(
-		localSphericalSystem.origin(),
-		localSphericalSystem.xAxis(),
-		localSphericalSystem.yAxis(),
-		localSphericalSystem.zAxis()
+		ATP::Math::Vector(-5.0, 0.0, 0.0),	//Camera location
+		ATP::Math::Vector::X,				//Forward |
+		ATP::Math::Vector::Y,				//Left    |-- Adjust these as necessary to account for viewing direction
+		ATP::Math::Vector::Z				//Up      |
 	);
 
 	//Set resolution
@@ -77,23 +73,59 @@ void backgroundRenderTest() {
 	for (unsigned int x = 0; x < scrWidth; x++) {
 		for (unsigned int z = 0; z < scrHeight; z++) {
 			//Calculate ray vector in <p, t, T>
-			ATP::Math::Vector rayCartesian(
+			ATP::Math::Vector rayLocal(
 				(double)(x - scrWidth / 2),
 				dist,
 				(double)(z - scrHeight / 2)
 			);
 
-			//Define a cartesian coordinate system in the plane of the ray and global origin
-			ATP::Math::Vector xAxis = ATP::Math::Vector(-rayCartesian.x, 0.0, 0.0).normalize();
-			ATP::Math::Vector zAxis = (xAxis ^ rayCartesian).normalize();
-			ATP::Math::Vector yAxis = zAxis ^ xAxis;
-			Cartesian::System system2D(localCartesianSystem.origin(), xAxis, yAxis, zAxis);
+			//Find the absolute direction of the ray
+			ATP::Math::Vector rayAbsolute = cartesianToAbsolute(rayLocal, localCartesianSystem);
 
-			//Calculate 2d ray vector <p, T>
-			//Trace ray until dt/ds is small OR dp/ds == 0
-			//Read off final T angle
-			//Translate back into 3d direction
+			//Define a cartesian coordinate system in the plane of the ray and global origin
+			ATP::Math::Vector xAxis = -1.0 * localCartesianSystem.origin().normalize();		// The x axis points back through the origin
+			ATP::Math::Vector zAxis = (xAxis ^ rayAbsolute).normalize();					// The ray is defined to be in the direction of +y, so x cross r is in the direction of +z
+			ATP::Math::Vector yAxis = zAxis ^ xAxis;										// Get y from the calculated x and z
+			Cartesian::System system2D(ATP::Math::Vector::Null, xAxis, yAxis, zAxis);		// Setup the coordinate system
+
+			//Get the initial spacetime coordinates for the geodesic
+			double p = sqrt(system2D.origin().length2() - w * w); // [1] From r^2 = p^2 + w^2
+			double t = 0.0;
+			double T = acos((xAxis * rayAbsolute) / (xAxis.length() * rayAbsolute.length()));	// From the definition of dot product a.b = |a||b|cos(T)
+			
+			//Trace ray until either:
+			//	(dp < 0 && p < 0 || dp > 0 && p > 0) && ds is small, this means the ray is headed almost directly away from the wormhole
+			//	dp == 0.0, The ray got stuck in the throat
+			Geodesic::Point final = Geodesic(p, t, T, w).trace(
+				ds,
+				[](Geodesic::Point cur, Geodesic::Point start) {
+					double threshold = 0.001;
+					return
+						(cur.dp() < 0 && cur.p() < 0 || cur.dp() > 0 && cur.p() > 0) && fabs(cur.dt()) < threshold  // The ray is headed almost directly away from the wormhole
+						|| cur.dp() == 0.0;																			// The ray got stuck in the throat
+				},
+				[](Geodesic::Point cur, Geodesic::Point start) {
+					//NOOP:  Currently we don't need to do anything here.  We just need the final point
+				}
+			);
+
+			//Read off final coordinates
+			double tFinal = final.t();
+			double rFinal = sqrt(final.p() * final.p() + w * w);
+
+			//Determine which side of the wormhole the ray got to
+			unsigned int index = final.p() <= 0 ? 0 : 1;
+
+			//Translate back into global spherical coordinates
+			ATP::Math::Vector final2D(
+				rFinal * cos(tFinal),
+				rFinal * sin(tFinal),
+				0.0
+			);
+			Spherical::Vector finalSpherical = cartesianToSpherical(final2D, system2D);
+
 			//Read off corresponding pixel from appropriate background image
+
 			//Antialias (if desired)
 		}
 	}
