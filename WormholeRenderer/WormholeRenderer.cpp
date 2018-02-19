@@ -99,14 +99,15 @@ void backgroundRenderTest() {
 			//	dp == 0.0, The ray got stuck in the throat
 			Geodesic::Point final = Geodesic(p, t, T, w).trace(
 				ds,
-				[](Geodesic::Point cur, Geodesic::Point start) {
-					double threshold = 0.001;
+				[&](Geodesic::Point cur, Geodesic::Point start) {
+					//TODO:  Add geometry intersection checks
+					double threshold = 100.0;
 					return
-						(cur.dp() < 0 && cur.p() < 0 || cur.dp() > 0 && cur.p() > 0) && fabs(cur.dt()) < threshold  // The ray is headed almost directly away from the wormhole
-						|| cur.dp() == 0.0;																			// The ray got stuck in the throat
+						fabs(cur.p()) > threshold * w	// The ray is far away from the wormhole
+						|| cur.dp() == 0.0;				// The ray got stuck in the throat
 				},
 				[](Geodesic::Point cur, Geodesic::Point start) {
-					//NOOP:  Currently we don't need to do anything here.  We just need the final point
+					//NOOP:  Currently we don't need to do anything here.  We just need the final point.
 				}
 			);
 
@@ -130,7 +131,8 @@ void backgroundRenderTest() {
 			//Antialias (if desired)
 		}
 	}
-	//Save final image
+
+	//Save final image via CImg
 }
 
 int main() {
