@@ -4,3 +4,8 @@ npm install
 
 git clone https://github.com/DaemonAlchemist/atp-cpp-vector.git vendor/daemonalchemist/atp-vector
 git clone https://github.com/DaemonAlchemist/atp-coordinate-systems.git vendor/daemonalchemist/atp-coordinate-systems
+
+git clone https://github.com/dtschump/CImg.git vendor/dtschump/CImg
+cd vendor/dtschump/CImg
+git checkout tags/v.220
+cd ../../..
