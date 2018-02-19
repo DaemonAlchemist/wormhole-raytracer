@@ -19,6 +19,7 @@ namespace ATP
 				Point next(Point cur, double ds);
 
 				Point trace(double ds, std::function<bool(Point, Point)> isDone, std::function<void(Point, Point)> body);
+				Point trace(double ds, std::function<bool(Point, Point)> isDone);
 
 			private:
 				double p, t, dp, dt, w, h;

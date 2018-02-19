@@ -105,9 +105,6 @@ void backgroundRenderTest() {
 					return
 						fabs(cur.p()) > threshold * w	// The ray is far away from the wormhole
 						|| cur.dp() == 0.0;				// The ray got stuck in the throat
-				},
-				[](Geodesic::Point cur, Geodesic::Point start) {
-					//NOOP:  Currently we don't need to do anything here.  We just need the final point.
 				}
 			);
 
