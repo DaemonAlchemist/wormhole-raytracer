@@ -9,6 +9,7 @@
 #include "geodesic.hpp"
 #include <iostream>
 #include <fstream>
+#include "vendor\dtschump\CImg\CImg.h"
 
 double PI = 3.1415926535897;
 
@@ -67,7 +68,7 @@ void backgroundRenderTest() {
 	//Calculate screen distance
 	double dist = scrWidth / (2.0 * tan(viewingAngle / 2.0));
 
-	//TODO: Load background images
+	//TODO: Load background images via CImg
 
 	//Iterate over screen pixels
 	for (unsigned int x = 0; x < scrWidth; x++) {
