@@ -18,6 +18,8 @@ namespace ATP
 				Point reset();
 				Point next(Point cur, double ds);
 
+				Point trace(std::function<double(Point)> ds, std::function<bool(Point, Point)> isDone, std::function<void(Point, Point)> body);
+				Point trace(std::function<double(Point)> ds, std::function<bool(Point, Point)> isDone);
 				Point trace(double ds, std::function<bool(Point, Point)> isDone, std::function<void(Point, Point)> body);
 				Point trace(double ds, std::function<bool(Point, Point)> isDone);
 

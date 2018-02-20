@@ -18,10 +18,6 @@ namespace ATP
 				this->t = t;
 				this->w = w;
 
-				std::cout << "p: " << p << "\n";
-				std::cout << "w: " << w << "\n";
-				std::cout << "t: " << t << "\n";
-
 				double b = p * p + w * w;	//Simplification
 				double r = sqrt(b);			//Simplification [1]
 
@@ -66,7 +62,7 @@ namespace ATP
 			}
 
 			Geodesic::Point Geodesic::trace(
-				double ds,
+				std::function<double(Geodesic::Point)> ds,
 				std::function<bool(Geodesic::Point, Geodesic::Point)> isDone,
 				std::function<void(Geodesic::Point, Geodesic::Point)> body
 			) {
@@ -74,13 +70,31 @@ namespace ATP
 				Geodesic::Point cur = start;
 				while (!isDone(cur, start)) {
 					body(cur, start);
-					cur = next(cur, ds);
+					cur = next(cur, ds(cur));
 				}
 
 				return cur;
 			}
 
-			Geodesic::Point Geodesic::trace(double ds, std::function<bool(Geodesic::Point, Geodesic::Point)> isDone) {
+			Geodesic::Point Geodesic::trace(
+				std::function<double(Geodesic::Point)> ds,
+				std::function<bool(Geodesic::Point, Geodesic::Point)> isDone
+			) {
+				return trace(ds, isDone, [](Geodesic::Point cur, Geodesic::Point start) {});
+			}
+
+			Geodesic::Point Geodesic::trace(
+				double ds,
+				std::function<bool(Geodesic::Point, Geodesic::Point)> isDone,
+				std::function<void(Geodesic::Point, Geodesic::Point)> body
+			) {
+				return trace([&](Geodesic::Point cur) {return ds; }, isDone, body);
+			}
+
+			Geodesic::Point Geodesic::trace(
+				double ds,
+				std::function<bool(Geodesic::Point, Geodesic::Point)> isDone
+			) {
 				return trace(ds, isDone, [](Geodesic::Point cur, Geodesic::Point start) {});
 			}
 		}

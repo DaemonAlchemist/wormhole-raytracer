@@ -11,6 +11,10 @@
 #include <fstream>
 #include "vendor\dtschump\CImg\CImg.h"
 
+using namespace cimg_library;
+
+typedef CImg<unsigned char> Image;
+
 double PI = 3.1415926535897;
 
 using namespace ATP::Wormhole::Ellis;
@@ -47,8 +51,6 @@ void traceTest() {
 
 void backgroundRenderTest() {
 	double w = 1.0;		//Wormhole throat width
-	double ds = 0.01;	//Integration step size
-
 
 	//Setup a local cartesian system at the camera's location with orientation of the system following the camera's field of view
 	Cartesian::System localCartesianSystem(
@@ -59,8 +61,8 @@ void backgroundRenderTest() {
 	);
 
 	//Set resolution
-	unsigned int scrWidth = 640;
-	unsigned int scrHeight = 480;
+	int scrWidth = 640;
+	int scrHeight = 480;
 
 	//Set viewing angle
 	double viewingAngle = PI / 2.0;
@@ -68,20 +70,35 @@ void backgroundRenderTest() {
 	//Calculate screen distance
 	double dist = scrWidth / (2.0 * tan(viewingAngle / 2.0));
 
-	//TODO: Load background images via CImg
+	//Load background images via CImg
+	unsigned int imgWidth = 1280;
+	unsigned int imgHeight = 640;
+	Image galaxy1("../../../textures/galaxy1.jpg");
+	Image galaxy2("../../../textures/galaxy2.jpg");
+	Image finalImage(scrWidth, scrHeight, 1, 3);
 
 	//Iterate over screen pixels
-	for (unsigned int x = 0; x < scrWidth; x++) {
-		for (unsigned int z = 0; z < scrHeight; z++) {
+	for (int y = 0; y < scrWidth; y++) {
+		std::cout << ".";
+		for (int z = 0; z < scrHeight; z++) {
 			//Calculate ray vector in <p, t, T>
 			ATP::Math::Vector rayLocal(
-				(double)(x - scrWidth / 2),
 				dist,
-				(double)(z - scrHeight / 2)
+				(double)(scrWidth / 2 - y),
+				(double)(scrHeight / 2 - z)
 			);
 
 			//Find the absolute direction of the ray
-			ATP::Math::Vector rayAbsolute = cartesianToAbsolute(rayLocal, localCartesianSystem);
+			ATP::Math::Vector rayAbsolute = cartesianToCartesian(
+				rayLocal,
+				localCartesianSystem,
+				Cartesian::System(
+					localCartesianSystem.origin(),
+					ATP::Math::Vector::X,
+					ATP::Math::Vector::Y,
+					ATP::Math::Vector::Z
+				)
+			).normalize();
 
 			//Define a cartesian coordinate system in the plane of the ray and global origin
 			ATP::Math::Vector xAxis = -1.0 * localCartesianSystem.origin().normalize();		// The x axis points back through the origin
@@ -90,7 +107,7 @@ void backgroundRenderTest() {
 			Cartesian::System system2D(ATP::Math::Vector::Null, xAxis, yAxis, zAxis);		// Setup the coordinate system
 
 			//Get the initial spacetime coordinates for the geodesic
-			double p = sqrt(system2D.origin().length2() - w * w); // [1] From r^2 = p^2 + w^2
+			double p = sqrt(localCartesianSystem.origin().length2() - w * w); // [1] From r^2 = p^2 + w^2
 			double t = 0.0;
 			double T = acos((xAxis * rayAbsolute) / (xAxis.length() * rayAbsolute.length()));	// From the definition of dot product a.b = |a||b|cos(T)
 			
@@ -98,10 +115,10 @@ void backgroundRenderTest() {
 			//	|pCurrent| >> |pInitial|, the ray is much farther away from the wormhole than it started
 			//	dp == 0.0, The ray got stuck in the throat
 			Geodesic::Point final = Geodesic(p, t, T, w).trace(
-				ds,
+				[](Geodesic::Point cur) {return cur.r() / 10.0; },
 				[](Geodesic::Point cur, Geodesic::Point start) {
 					//TODO:  Add geometry intersection checks
-					double threshold = 100.0;
+					double threshold = 10.0;
 					return
 						fabs(cur.p() / start.p()) > threshold	// The ray is far away from the wormhole compared to the camera
 						|| cur.dp() == 0.0;						// The ray got stuck in the throat
@@ -120,12 +137,19 @@ void backgroundRenderTest() {
 			Spherical::Vector finalSpherical = cartesianToSpherical(final2D, system2D);
 
 			//Read off corresponding pixel from appropriate background image
+			int yFinal = (unsigned int)(finalSpherical.theta / PI * (double)imgHeight);
+			int xFinal = (unsigned int)(finalSpherical.psi / (2.0 * PI) * (double)imgWidth) + imgWidth / 2;
+
+			for (unsigned int channel = 0; channel < 3; channel++) {
+				finalImage(y, z, channel) = index ? galaxy1(xFinal, yFinal, channel) : galaxy2(xFinal, yFinal, channel);
+			}
 
 			//Antialias (if desired)
 		}
 	}
 
 	//Save final image via CImg
+	finalImage.save("render.jpg");
 }
 
 int main() {
@@ -133,8 +157,8 @@ int main() {
 	double psi, theta;					//Viewing direction
 	double roll;							//Camera roll
 
-	traceTest();
-	//backgroundRenderTest();
+	//traceTest();
+	backgroundRenderTest();
 
 	//TODO:  Load geometry
 
