@@ -61,8 +61,8 @@ void backgroundRenderTest() {
 	);
 
 	//Set resolution
-	int scrWidth = 640;
-	int scrHeight = 480;
+	int scrWidth = 32;
+	int scrHeight = 32;
 
 	//Set viewing angle
 	double viewingAngle = PI / 2.0;
@@ -77,7 +77,15 @@ void backgroundRenderTest() {
 	Image galaxy2("../../../textures/galaxy2.jpg");
 	Image finalImage(scrWidth, scrHeight, 1, 3);
 
+	//Open debug file
+	std::ofstream outFile;
+	outFile.open("debug.csv");
+
+	//Iterate until heading directly away from the wormhole
+	outFile << "pInitial,tInitial,T,x,y,pFinal,tFinal,r,x,y,z,r,theta,psi\n";
+
 	//Iterate over screen pixels
+	#pragma loop(hint_parallel(0))
 	for (int y = 0; y < scrWidth; y++) {
 		std::cout << ".";
 		for (int z = 0; z < scrHeight; z++) {
@@ -101,14 +109,16 @@ void backgroundRenderTest() {
 			).normalize();
 
 			//Define a cartesian coordinate system in the plane of the ray and global origin
+			//TODO:  Handle edge case where |z| == 0.0
 			ATP::Math::Vector xAxis = -1.0 * localCartesianSystem.origin().normalize();		// The x axis points back through the origin
 			ATP::Math::Vector zAxis = (xAxis ^ rayAbsolute).normalize();					// The ray is defined to be in the direction of +y, so x cross r is in the direction of +z
 			ATP::Math::Vector yAxis = zAxis ^ xAxis;										// Get y from the calculated x and z
 			Cartesian::System system2D(ATP::Math::Vector::Null, xAxis, yAxis, zAxis);		// Setup the coordinate system
 
 			//Get the initial spacetime coordinates for the geodesic
-			double p = sqrt(localCartesianSystem.origin().length2() - w * w); // [1] From r^2 = p^2 + w^2
-			double t = 0.0;
+			//TODO:  Handle case where camera is on the opposite side of the wormhole, such that p < 0.0
+			double p = -sqrt(localCartesianSystem.origin().length2() - w * w); // [1] From r^2 = p^2 + w^2
+			double t = PI;
 			double T = acos((xAxis * rayAbsolute) / (xAxis.length() * rayAbsolute.length()));	// From the definition of dot product a.b = |a||b|cos(T)
 			
 			//Trace ray until either:
@@ -144,19 +154,22 @@ void backgroundRenderTest() {
 				finalImage(y, z, channel) = index ? galaxy1(xFinal, yFinal, channel) : galaxy2(xFinal, yFinal, channel);
 			}
 
+			outFile << p << "," << t << "," << T << ",";
+			outFile << y << "," << z << ",";
+			outFile << final.p() << "," << final.t() << "," << final.r() << ",";
+			outFile << final2D.x << "," << final2D.y << "," << final2D.z << ",";
+			outFile << finalSpherical.r << "," << finalSpherical.theta << "," << finalSpherical.psi << "\n";
+
 			//Antialias (if desired)
 		}
 	}
 
 	//Save final image via CImg
 	finalImage.save("render.jpg");
+	outFile.close();
 }
 
 int main() {
-	ATP::Math::Vector camera(1, 2, 3);	//Camera location
-	double psi, theta;					//Viewing direction
-	double roll;							//Camera roll
-
 	//traceTest();
 	backgroundRenderTest();
 

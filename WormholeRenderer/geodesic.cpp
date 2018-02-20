@@ -25,7 +25,7 @@ namespace ATP
 				dt = sin(T) / r;	//Initial value of dt/ds
 				
 				//Determine characteristic constant (h) of the geodesic [2]
-				float m = T > 0.0f ? 1.0 : -1.0;
+				double m = T > 0.0f ? 1.0 : -1.0;
 				if (dp != 0.0f) {
 					double a = dt / dp;			//Simplification
 					h = m * sqrt(a*a*b*b / (a*a*b + 1));
