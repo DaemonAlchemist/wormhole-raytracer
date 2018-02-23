@@ -9,6 +9,7 @@
 #include "geodesic.hpp"
 #include <iostream>
 #include <fstream>
+#include <string>
 #include "vendor\dtschump\CImg\CImg.h"
 
 using namespace cimg_library;
@@ -49,20 +50,20 @@ void traceTest() {
 	outFile.close();
 }
 
-void backgroundRenderTest() {
+void backgroundRenderTest(double offset, std::string outputFileName, bool debug = false) {
 	double w = 1.0;		//Wormhole throat width
 
 	//Setup a local cartesian system at the camera's location with orientation of the system following the camera's field of view
 	Cartesian::System localCartesianSystem(
-		ATP::Math::Vector(-5.0, 0.0, 0.0),	//Camera location
+		ATP::Math::Vector(-offset, 0.0, 0.0),	//Camera location
 		ATP::Math::Vector::X,				//Forward |
 		ATP::Math::Vector::Y,				//Left    |-- Adjust these as necessary to account for viewing direction
 		ATP::Math::Vector::Z				//Up      |
 	);
 
 	//Set resolution
-	int scrWidth = 32;
-	int scrHeight = 32;
+	int scrWidth = 1024;
+	int scrHeight = 1024;
 
 	//Set viewing angle
 	double viewingAngle = PI / 2.0;
@@ -71,18 +72,20 @@ void backgroundRenderTest() {
 	double dist = scrWidth / (2.0 * tan(viewingAngle / 2.0));
 
 	//Load background images via CImg
-	unsigned int imgWidth = 1280;
-	unsigned int imgHeight = 640;
-	Image galaxy1("../../../textures/galaxy1.jpg");
-	Image galaxy2("../../../textures/galaxy2.jpg");
+	std::cout << "Loading image 1\n";
+	Image galaxy1("../../../textures/galaxy2.jpg");
+	std::cout << galaxy1.width() << "x" << galaxy1.height() << "\n";
+	std::cout << "Loading image 2\n";
+	Image galaxy2("../../../textures/galaxy1.jpg");
+	std::cout << galaxy2.width() << "x" << galaxy2.height() << "\n";
 	Image finalImage(scrWidth, scrHeight, 1, 3);
 
 	//Open debug file
 	std::ofstream outFile;
-	outFile.open("debug.csv");
+	if(debug) outFile.open("debug.csv");
 
 	//Iterate until heading directly away from the wormhole
-	outFile << "pInitial,tInitial,T,x,y,pFinal,tFinal,r,x,y,z,r,theta,psi\n";
+	if(debug) outFile << "x,y,dx,dy,dz,dx(abs),dy(abs),dz(abs),x.x,x.y,x.z,y.x,y.y,y.z,z.x,z.y,z.z,pInitial,tInitial,T,pFinal,tFinal,rFinal,x,y,z,r,theta,psi\n";
 
 	//Iterate over screen pixels
 	#pragma loop(hint_parallel(0))
@@ -125,7 +128,7 @@ void backgroundRenderTest() {
 			//	|pCurrent| >> |pInitial|, the ray is much farther away from the wormhole than it started
 			//	dp == 0.0, The ray got stuck in the throat
 			Geodesic::Point final = Geodesic(p, t, T, w).trace(
-				[](Geodesic::Point cur) {return cur.r() / 10.0; },
+				0.01,
 				[](Geodesic::Point cur, Geodesic::Point start) {
 					//TODO:  Add geometry intersection checks
 					double threshold = 10.0;
@@ -135,9 +138,6 @@ void backgroundRenderTest() {
 				}
 			);
 
-			//Determine which side of the wormhole the ray is on
-			unsigned int index = final.p() <= 0 ? 0 : 1;
-
 			//Translate back into global spherical coordinates
 			ATP::Math::Vector final2D(
 				final.r() * cos(final.t()),
@@ -146,32 +146,52 @@ void backgroundRenderTest() {
 			);
 			Spherical::Vector finalSpherical = cartesianToSpherical(final2D, system2D);
 
+			//Determine which side of the wormhole the ray is on
+			Image* finalBackground = final.p() <= 0 ? &galaxy1 : &galaxy2;
+
 			//Read off corresponding pixel from appropriate background image
+			unsigned int imgHeight = finalBackground->height();
+			unsigned int imgWidth = finalBackground->width();
 			int yFinal = (unsigned int)(finalSpherical.theta / PI * (double)imgHeight);
 			int xFinal = (unsigned int)(finalSpherical.psi / (2.0 * PI) * (double)imgWidth) + imgWidth / 2;
 
 			for (unsigned int channel = 0; channel < 3; channel++) {
-				finalImage(y, z, channel) = index ? galaxy1(xFinal, yFinal, channel) : galaxy2(xFinal, yFinal, channel);
+				finalImage(y, z, channel) = (*finalBackground)(xFinal, yFinal, channel);
 			}
 
-			outFile << p << "," << t << "," << T << ",";
-			outFile << y << "," << z << ",";
-			outFile << final.p() << "," << final.t() << "," << final.r() << ",";
-			outFile << final2D.x << "," << final2D.y << "," << final2D.z << ",";
-			outFile << finalSpherical.r << "," << finalSpherical.theta << "," << finalSpherical.psi << "\n";
+			if (debug) {
+				outFile << y << "," << z << ",";
+				outFile << rayLocal.x << "," << rayLocal.y << "," << rayLocal.z << ",";
+				outFile << rayAbsolute.x << "," << rayAbsolute.y << "," << rayAbsolute.z << ",";
+				outFile << xAxis.x << "," << xAxis.y << "," << xAxis.z << ",";
+				outFile << yAxis.x << "," << yAxis.y << "," << yAxis.z << ",";
+				outFile << zAxis.x << "," << zAxis.y << "," << zAxis.z << ",";
+				outFile << p << "," << t << "," << T << ",";
+				outFile << final.p() << "," << final.t() << "," << final.r() << ",";
+				outFile << final2D.x << "," << final2D.y << "," << final2D.z << ",";
+				outFile << finalSpherical.r << "," << finalSpherical.theta << "," << finalSpherical.psi << "\n";
+			}
 
 			//Antialias (if desired)
 		}
 	}
 
 	//Save final image via CImg
-	finalImage.save("render.jpg");
-	outFile.close();
+	finalImage.save(outputFileName.c_str());
+	if(debug) outFile.close();
 }
 
 int main() {
 	//traceTest();
-	backgroundRenderTest();
+	//Loop on offset for animation
+	unsigned int i = 0;
+	for (double d = -20.0; d <= 0.0; d += 0.2) {
+		std::string index = std::to_string(i);
+		while (index.length() < 3) index = std::string("0") + index;
+		std::string fileName = std::string("render") + index + std::string(".jpg");
+		backgroundRenderTest(d, fileName, false);
+		i++;
+	}
 
 	//TODO:  Load geometry
 
