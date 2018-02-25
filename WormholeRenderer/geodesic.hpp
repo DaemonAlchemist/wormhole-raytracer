@@ -24,7 +24,7 @@ namespace ATP
 				Point trace(double ds, std::function<bool(Point, Point)> isDone);
 
 			private:
-				double p, t, dp, dt, w, h;
+				double p, t, dp, dt, w, h, mInitial;
 			};
 		}
 	}

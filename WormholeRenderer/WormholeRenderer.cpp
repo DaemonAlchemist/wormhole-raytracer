@@ -31,40 +31,36 @@ void traceTest() {
 	outFile.open("data.csv");
 
 	//Iterate until heading directly away from the wormhole
-	outFile << "p,t,dp,dt,m,r,x,y,z\n";
+	outFile << "p,t,dp,dt,mInitial,m,r,x,y,z\n";
 
-	double p = -10.0;			//Location of camera in radial coordinates
+	double p = 5.0;			//Location of camera in radial coordinates
 	double t = PI;				//Location of camera in radial coordinates
-	double T = 0.0317325 * PI;	//Viewing angle
+	double T = 1.52663;	//Viewing angle
 	double w = 1.0;				//Wormhole throat width
 	double ds = 0.01;			//Integration step size
 
 	Geodesic(p, t, T, w).trace(
 		ds,
-		[](Geodesic::Point cur, Geodesic::Point start) {return fabs(cur.p()) > fabs(start.p()); },
+		[](Geodesic::Point cur, Geodesic::Point start) {
+			//TODO:  Add geometry intersection checks
+			double limit = 20.0;
+			return
+				fabs(cur.p()) > limit	// The ray is far away from the wormhole
+				|| cur.dp() == 0.0;		// The ray got stuck in the throat
+		},
 		[&](Geodesic::Point cur, Geodesic::Point start) {
 			std::cout << cur.p() << "\t" << cur.t() << "\n";
-			outFile << cur.p() << "," << cur.t() << "," << cur.dp() << "," << cur.dt() << "," << cur.m() << "," << cur.r() << "," << cur.x() << "," << cur.y() << "," << cur.z() << "\n";
+			outFile << cur.p() << "," << cur.t() << "," << cur.dp() << "," << cur.dt() << "," << cur.mInitial() << "," << cur.m() << "," << cur.r() << "," << cur.x() << "," << cur.y() << "," << cur.z() << "\n";
 		}
 	);
 	outFile.close();
 }
 
-void backgroundRenderTest(double offset, std::string outputFileName, bool debug = false) {
-	double w = 1.0;		//Wormhole throat width
+Image galaxy1("../../../textures/galaxy2.jpg");
+Image galaxy2("../../../textures/galaxy1.jpg");
 
-	//Setup a local cartesian system at the camera's location with orientation of the system following the camera's field of view
-	Cartesian::System localCartesianSystem(
-		ATP::Math::Vector(-offset, 0.0, 0.0),	//Camera location
-		ATP::Math::Vector::X,				//Forward |
-		ATP::Math::Vector::Y,				//Left    |-- Adjust these as necessary to account for viewing direction
-		ATP::Math::Vector::Z				//Up      |
-	);
 
-	//Set resolution
-	int scrWidth = 1024;
-	int scrHeight = 1024;
-
+void backgroundRenderTest(double w, Cartesian::System localCartesianSystem, bool flipped, int scrWidth, int scrHeight, std::string outputFileName, bool debug = false) {
 	//Set viewing angle
 	double viewingAngle = PI / 2.0;
 
@@ -73,10 +69,8 @@ void backgroundRenderTest(double offset, std::string outputFileName, bool debug 
 
 	//Load background images via CImg
 	std::cout << "Loading image 1\n";
-	Image galaxy1("../../../textures/galaxy2.jpg");
 	std::cout << galaxy1.width() << "x" << galaxy1.height() << "\n";
 	std::cout << "Loading image 2\n";
-	Image galaxy2("../../../textures/galaxy1.jpg");
 	std::cout << galaxy2.width() << "x" << galaxy2.height() << "\n";
 	Image finalImage(scrWidth, scrHeight, 1, 3);
 
@@ -89,9 +83,9 @@ void backgroundRenderTest(double offset, std::string outputFileName, bool debug 
 
 	//Iterate over screen pixels
 	#pragma loop(hint_parallel(0))
-	for (int y = 0; y < scrWidth; y++) {
+	for (int z = 0; z < scrHeight; z++) {
 		std::cout << ".";
-		for (int z = 0; z < scrHeight; z++) {
+		for (int y = 0; y < scrWidth; y++) {
 			//Calculate ray vector in <p, t, T>
 			ATP::Math::Vector rayLocal(
 				dist,
@@ -119,8 +113,8 @@ void backgroundRenderTest(double offset, std::string outputFileName, bool debug 
 			Cartesian::System system2D(ATP::Math::Vector::Null, xAxis, yAxis, zAxis);		// Setup the coordinate system
 
 			//Get the initial spacetime coordinates for the geodesic
-			//TODO:  Handle case where camera is on the opposite side of the wormhole, such that p < 0.0
 			double p = -sqrt(localCartesianSystem.origin().length2() - w * w); // [1] From r^2 = p^2 + w^2
+			p = flipped ? -p : p;
 			double t = PI;
 			double T = acos((xAxis * rayAbsolute) / (xAxis.length() * rayAbsolute.length()));	// From the definition of dot product a.b = |a||b|cos(T)
 			
@@ -131,10 +125,10 @@ void backgroundRenderTest(double offset, std::string outputFileName, bool debug 
 				0.01,
 				[](Geodesic::Point cur, Geodesic::Point start) {
 					//TODO:  Add geometry intersection checks
-					double threshold = 10.0;
+					double limit = 20.0;
 					return
-						fabs(cur.p() / start.p()) > threshold	// The ray is far away from the wormhole compared to the camera
-						|| cur.dp() == 0.0;						// The ray got stuck in the throat
+						fabs(cur.p()) > limit	// The ray is far away from the wormhole
+						|| cur.dp() == 0.0;		// The ray got stuck in the throat
 				}
 			);
 
@@ -183,13 +177,42 @@ void backgroundRenderTest(double offset, std::string outputFileName, bool debug 
 
 int main() {
 	//traceTest();
+	
 	//Loop on offset for animation
 	unsigned int i = 0;
-	for (double d = -20.0; d <= 0.0; d += 0.2) {
+	double start = -5.0;
+	double end = 5.0;
+	double frames = 100.0;
+	for (double p = 5.0; p <= 5.0; p += (end - start) / frames) {
+		//Wormhole parameters
+		double w = 1.0;		//Wormhole throat width
+		bool flipped = p > 0.0;
+
+		//Determine the offset
+		double x = -sqrt(p * p + w * w);
+
+		//Determine the angle
+		double theta = PI / 2.0;// +PI * ((double)(i) / frames);
+
+		//Setup a local cartesian system at the camera's location with orientation of the system following the camera's field of view
+		Cartesian::System localCartesianSystem(
+			ATP::Math::Vector(x, 0.0, 0.0),								//Camera location
+			ATP::Math::Vector::X.rotate(ATP::Math::Vector::Z, theta),	//Forward |
+			ATP::Math::Vector::Y.rotate(ATP::Math::Vector::Z, theta),	//Left    |-- Adjust these as necessary to account for viewing direction
+			ATP::Math::Vector::Z										//Up      |
+		);
+
+		//Set resolution
+		int scrWidth = 64;
+		int scrHeight = 64;
+
+		//Generate the filename
+		std::string folder = "animation 2";
 		std::string index = std::to_string(i);
 		while (index.length() < 3) index = std::string("0") + index;
-		std::string fileName = std::string("render") + index + std::string(".jpg");
-		backgroundRenderTest(d, fileName, false);
+		std::string fileName = folder + std::string("/render") + index + std::string(".jpg");
+
+		backgroundRenderTest(w, localCartesianSystem, flipped, scrWidth, scrHeight, fileName, true);
 		i++;
 	}
 

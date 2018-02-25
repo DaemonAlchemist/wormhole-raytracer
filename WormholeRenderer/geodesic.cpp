@@ -7,6 +7,14 @@
 // [1] http://www.spacetimetravel.org/wurmlochflug/wurmlochflug.html
 // [2] https://en.wikipedia.org/wiki/Ellis_wormhole
 
+
+
+
+//TODO:  Still a sign bug in here somewhere :P
+
+
+
+
 namespace ATP
 {
 	namespace Wormhole
@@ -24,6 +32,8 @@ namespace ATP
 				dp = cos(T);		//Initial value of dp/ds
 				dt = sin(T) / r;	//Initial value of dt/ds
 				
+				mInitial = dp * p > 0.0 ? -1.0 : 1.0;
+
 				//Determine characteristic constant (h) of the geodesic [2]
 				double m = T > 0.0f ? 1.0 : -1.0;
 				if (dp != 0.0f) {
@@ -36,7 +46,7 @@ namespace ATP
 			}
 
 			Geodesic::Point Geodesic::reset() {
-				return Geodesic::Point(p, t, dp, dt, w, 1.0f);
+				return Geodesic::Point(p, t, dp, dt, w, dp * p < 0.0 ? 1.0f : -1.0, mInitial);
 			}
 
 			Geodesic::Point Geodesic::next(Point cur, double ds) {
@@ -49,16 +59,16 @@ namespace ATP
 				double d = 1.0f - h * h / c;	//Simplification
 				if (d < 0.0f) d = -d;
 				double dt = h / c;
-				double dp = cur.m() * sqrt(d);
+				double dp = cur.mInitial() * cur.m() * sqrt(d);
 
 				//Check for turnaround condition [2]
 				double m = cur.m();
-				if (m > 0.0 && h*h > w*w && dp > cur.dp() && fabs(dp) < 0.01f) {
+				if (m > 0.0 && h*h > w*w && fabs(dp) > fabs(cur.dp()) && fabs(dp) < 0.01f) {
 					m = -1.0;
 					dp = -dp;
 				}
 
-				return Geodesic::Point(p, t, dp, dt, w, m);
+				return Geodesic::Point(p, t, dp, dt, w, m, cur.mInitial());
 			}
 
 			Geodesic::Point Geodesic::trace(

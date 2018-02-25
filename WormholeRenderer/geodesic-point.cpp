@@ -15,13 +15,14 @@ namespace ATP
 				(*this) = p;
 			}
 
-			Geodesic::Point::Point(double p, double t, double dp, double dt, double w, double m) {
+			Geodesic::Point::Point(double p, double t, double dp, double dt, double w, double m, double mInitial) {
 				_p = p;
 				_t = t;
 				_dp = dp;
 				_dt = dt;
 				_w = w;
 				_m = m;
+				_mInitial = mInitial;
 			}
 
 			Geodesic::Point& Geodesic::Point::operator=(const Point& p) {
@@ -31,6 +32,7 @@ namespace ATP
 				_dt = p.dt();
 				_w = p.w();
 				_m = p.m();
+				_mInitial = p.mInitial();
 				return *this;
 			}
 
@@ -48,6 +50,7 @@ namespace ATP
 			}
 			double Geodesic::Point::w() const { return _w; }
 			double Geodesic::Point::m() const { return _m; }
+			double Geodesic::Point::mInitial() const { return _mInitial; }
 		}
 	}
 }
