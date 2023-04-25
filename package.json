@@ -10,7 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/DaemonAlchemist/wormhole-raytracer.git"
   },
-  "author": "Andrew Wittrock",
+  "author": "DaemonAlchemist",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/DaemonAlchemist/wormhole-raytracer/issues"
